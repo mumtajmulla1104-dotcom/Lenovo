@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lenovo — Redefine Performance</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #000000;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.08);
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --text-dim: rgba(255,255,255,0.45);
+      --text-mid: rgba(255,255,255,0.7);
+      --accent: #E2231A;
+      --accent-glow: rgba(226,35,26,0.3);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, sans-serif;
+      overflow-x: hidden;
+      cursor: default;
+    }
+
+    canvas#bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .content-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Navigation */
+    .nav-center {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      gap: 12px;
+      z-index: 100;
+      opacity: 1;
+      transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .nav-center.scrolled {
+      top: 28px;
+      transform: translate(-50%, 0);
+    }
+
+    .nav-item {
+      width: 52px;
+      height: 52px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .nav-item:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.15);
+      transform: translateY(-2px);
+    }
+
+    .nav-item.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .nav-item .dot {
+      position: absolute;
+      top: -3px;
+      right: -3px;
+      width: 8px;
+      height: 8px;
+      background: var(--accent);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: rgba(255,255,255,0.7);
+      fill: none;
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .nav-item:hover svg { stroke: #fff; }
+
+    .nav-label {
+      position: absolute;
+      bottom: -22px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      color: var(--text-dim);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .nav-item:hover .nav-label,
+    .nav-item.active .nav-label { opacity: 1; }
+
+    /* Hero Section */
+    .hero {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: center;
+      padding-bottom: 80px;
+      position: relative;
+    }
+
+    .hero-tagline {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+    }
+
+    .hero-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .hero-brand span { color: var(--accent); }
+
+    /* 3D Laptop Container */
+    #laptop-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Sections */
+    .section {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 120px 60px;
+      position: relative;
+    }
+
+    .section-inner {
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    .section-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 24px;
+      color: var(--text);
+    }
+
+    .section-desc {
+      font-size: 16px;
+      line-height: 1.7;
+      color: var(--text-mid);
+      max-width: 500px;
+      margin-bottom: 40px;
+    }
+
+    /* Specs Grid */
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-top: 40px;
+    }
+
+    .spec-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px 24px;
+      transition: all 0.4s ease;
+      cursor: default;
+    }
+
+    .spec-card:hover {
+      background: var(--surface-hover);
+      border-color: rgba(255,255,255,0.12);
+      transform: translateY(-4px);
+    }
+
+    .spec-value {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .spec-value .unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dim);
+      margin-left: 2px;
+    }
+
+    .spec-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    /* Features */
+    .features-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-top: 40px;
+    }
+
+    .feature-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: default;
+      transition: all 0.3s ease;
+    }
+
+    .feature-row:hover {
+      padding-left: 12px;
+    }
+
+    .feature-row:first-child { border-top: 1px solid var(--border); }
+
+    .feature-name {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .feature-detail {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    /* CTA */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 32px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      letter-spacing: 0.3px;
+    }
+
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px var(--accent-glow);
+    }
+
+    .cta-btn svg {
+      width: 16px; height: 16px;
+      stroke: #fff; fill: none;
+      stroke-width: 2;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 60px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-brand {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-mid);
+      margin-bottom: 6px;
+    }
+
+    .footer-sub {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* Scroll animations */
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .section { padding: 80px 24px; }
+      .specs-grid { grid-template-columns: 1fr 1fr; }
+      .nav-item { width: 44px; height: 44px; border-radius: 12px; }
+      .nav-item svg { width: 18px; height: 18px; }
+    }
+
+    @media (max-width: 480px) {
+      .specs-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+  </style>
+</head>
+<body>
+
+  <canvas id="laptop-canvas"></canvas>
+
+  <div class="content-wrapper">
+    <!-- Center Nav -->
+    <nav class="nav-center" id="mainNav">
+      <a href="#specs" class="nav-item active">
+        <div class="dot"></div>
+        <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span class="nav-label">Product</span>
+      </a>
+      <a href="#features" class="nav-item">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span class="nav-label">Features</span>
+      </a>
+      <a href="#design" class="nav-item">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        <span class="nav-label">Design</span>
+      </a>
+      <a href="#order" class="nav-item">
+        <svg viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <span class="nav-label">Order</span>
+      </a>
+    </nav>
+
+    <!-- Hero -->
+    <section class="hero" id="hero">
+      <p class="hero-tagline">Engineered for creators</p>
+      <p class="hero-brand"><span>Lenovo</span> — ThinkPad X1 Carbon Gen 12</p>
+    </section>
+
+    <!-- Specs Section -->
+    <section class="section" id="specs">
+      <div class="section-inner">
+        <div class="reveal">
+          <p class="section-label">Specifications</p>
+          <h2 class="section-title">Power that<br>moves with you.</h2>
+          <p class="section-desc">Ultra-lightweight at just 1.09 kg with a 14" 2.8K OLED display — built for professionals who refuse to compromise.</p>
+        </div>
+        <div class="specs-grid reveal">
+          <div class="spec-card">
+            <div class="spec-value">Intel<span class="unit">Core Ultra 9</span></div>
+            <div class="spec-label">Processor — 14th Gen</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">64<span class="unit">GB</span></div>
+            <div class="spec-label">LPDDR5x Memory</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">2.8K<span class="unit">OLED</span></div>
+            <div class="spec-label">120Hz Display</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">2<span class="unit">TB</span></div>
+            <div class="spec-label">PCIe Gen 4 SSD</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">1.09<span class="unit">kg</span></div>
+            <div class="spec-label">Starting Weight</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">57<span class="unit">Wh</span></div>
+            <div class="spec-label">Battery Capacity</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="section" id="features">
+      <div class="section-inner">
+        <div class="reveal">
+          <p class="section-label">Features</p>
+          <h2 class="section-title">Every detail,<br>intentional.</h2>
+        </div>
+        <div class="features-list reveal">
+          <div class="feature-row">
+            <span class="feature-name">AI-powered camera</span>
+            <span class="feature-detail">Auto-framing & background blur</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">Haptic trackpad</span>
+            <span class="feature-detail">Force-sensing glass surface</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">Dolby Atmos</span>
+            <span class="feature-detail">Quad speaker system</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">Wi-Fi 7</span>
+            <span class="feature-detail">Tri-band connectivity</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">ThinkShield</span>
+            <span class="feature-detail">Hardware-level security</span>
+          </div>
+          <div class="feature-row">
+            <span class="feature-name">Rapid Charge Pro</span>
+            <span class="feature-detail">0 to 80% in 60 minutes</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Design Section -->
+    <section class="section" id="design">
+      <div class="section-inner" style="text-align:center;">
+        <div class="reveal">
+          <p class="section-label">Design</p>
+          <h2 class="section-title">Carbon fiber chassis.<br>Uncompromising build.</h2>
+          <p class="section-desc" style="margin: 0 auto 40px;">MIL-STD-810H certified. Crafted from recycled carbon fiber and magnesium alloy — lighter and stronger than ever. The 180° lay-flat hinge adapts to any workspace.</p>
+        </div>
+        <div class="specs-grid reveal" style="max-width:700px; margin:0 auto;">
+          <div class="spec-card">
+            <div class="spec-value">15.36<span class="unit">mm</span></div>
+            <div class="spec-label">Ultra-thin Profile</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">180°<span class="unit">hinge</span></div>
+            <div class="spec-label">Lay-flat Design</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">90%<span class="unit">recycled</span></div>
+            <div class="spec-label">Carbon Fiber Body</div>
+          </div>
+          <div class="spec-card">
+            <div class="spec-value">MIL<span class="unit">STD</span></div>
+            <div class="spec-label">810H Durability</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Order Section -->
+    <section class="section" id="order">
+      <div class="section-inner" style="text-align:center;">
+        <div class="reveal">
+          <p class="section-label">Available Now</p>
+          <h2 class="section-title">Starting at $1,449</h2>
+          <p class="section-desc" style="margin:0 auto 40px;">Free shipping. 30-day returns. Configure your ThinkPad X1 Carbon to match the way you work.</p>
+          <a href="#" class="cta-btn">
+            Configure & Buy
+            <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p class="footer-brand">Lenovo</p>
+      <p class="footer-sub">ThinkPad X1 Carbon — Smarter technology for all</p>
+    </footer>
+  </div>
+
+  <!-- Three.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    // === THREE.JS 3D LAPTOP ===
+    const canvas = document.getElementById('laptop-canvas');
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 2, 6);
+    camera.lookAt(0, 0, 0);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    mainLight.position.set(5, 8, 5);
+    mainLight.castShadow = true;
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0x4488ff, 0.3);
+    fillLight.position.set(-5, 3, -3);
+    scene.add(fillLight);
+
+    const redLight = new THREE.PointLight(0xE2231A, 0.6, 15);
+    redLight.position.set(3, 2, 3);
+    scene.add(redLight);
+
+    // Materials
+    const bodyMat = new THREE.MeshPhysicalMaterial({
+      color: 0x1a1a1a,
+      metalness: 0.7,
+      roughness: 0.25,
+      clearcoat: 0.5,
+      clearcoatRoughness: 0.2,
+    });
+
+    const screenMat = new THREE.MeshPhysicalMaterial({
+      color: 0x0a0a1a,
+      metalness: 0.1,
+      roughness: 0.1,
+      emissive: 0x111133,
+      emissiveIntensity: 0.3,
+    });
+
+    const screenGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x2244aa,
+      transparent: true,
+      opacity: 0.15,
+    });
+
+    const keyMat = new THREE.MeshPhysicalMaterial({
+      color: 0x111111,
+      metalness: 0.3,
+      roughness: 0.6,
+    });
+
+    const trackpadMat = new THREE.MeshPhysicalMaterial({
+      color: 0x1c1c1c,
+      metalness: 0.5,
+      roughness: 0.15,
+      clearcoat: 0.8,
+    });
+
+    const logoMat = new THREE.MeshBasicMaterial({ color: 0xE2231A });
+
+    // Build laptop
+    const laptopGroup = new THREE.Group();
+
+    // Base
+    const baseGeo = new THREE.BoxGeometry(3.6, 0.08, 2.4);
+    baseGeo.translate(0, 0.04, 0);
+    const baseMesh = new THREE.Mesh(baseGeo, bodyMat);
+    baseMesh.castShadow = true;
+    baseMesh.receiveShadow = true;
+
+    // Rounded edges for base
+    const edgeGeo = new THREE.CylinderGeometry(0.04, 0.04, 3.52, 16);
+    edgeGeo.rotateZ(Math.PI / 2);
+    const frontEdge = new THREE.Mesh(edgeGeo, bodyMat);
+    frontEdge.position.set(0, 0.04, 1.2);
+    baseMesh.add(frontEdge);
+
+    const backEdge = new THREE.Mesh(edgeGeo.clone(), bodyMat);
+    backEdge.position.set(0, 0.04, -1.2);
+    baseMesh.add(backEdge);
+
+    laptopGroup.add(baseMesh);
+
+    // Keyboard area
+    const kbAreaGeo = new THREE.PlaneGeometry(3.0, 1.3);
+    const kbAreaMesh = new THREE.Mesh(kbAreaGeo, keyMat);
+    kbAreaMesh.rotation.x = -Math.PI / 2;
+    kbAreaMesh.position.set(0, 0.085, -0.2);
+    laptopGroup.add(kbAreaMesh);
+
+    // Individual keys
+    for (let row = 0; row < 5; row++) {
+      for (let col = 0; col < 14; col++) {
+        const keyGeo = new THREE.BoxGeometry(0.18, 0.015, 0.18);
+        const key = new THREE.Mesh(keyGeo, keyMat);
+        key.position.set(
+          -1.35 + col * 0.2 + (row % 2 ? 0.05 : 0),
+          0.09,
+          -0.7 + row * 0.22
+        );
+        laptopGroup.add(key);
+      }
+    }
+
+    // Trackpad
+    const trackpadGeo = new THREE.BoxGeometry(1.2, 0.005, 0.7);
+    const trackpad = new THREE.Mesh(trackpadGeo, trackpadMat);
+    trackpad.position.set(0, 0.085, 0.75);
+    laptopGroup.add(trackpad);
+
+    // TrackPoint (red nub)
+    const trackPointGeo = new THREE.SphereGeometry(0.04, 16, 16);
+    const trackPoint = new THREE.Mesh(trackPointGeo, logoMat);
+    trackPoint.position.set(0, 0.1, -0.15);
+    laptopGroup.add(trackPoint);
+
+    // Screen lid (hinge group)
+    const lidGroup = new THREE.Group();
+    lidGroup.position.set(0, 0.08, -1.18);
+
+    const lidGeo = new THREE.BoxGeometry(3.6, 2.4, 0.06);
+    lidGeo.translate(0, 1.2, 0);
+    const lidMesh = new THREE.Mesh(lidGeo, bodyMat);
+    lidMesh.castShadow = true;
+    lidGroup.add(lidMesh);
+
+    // Screen display
+    const screenGeo = new THREE.PlaneGeometry(3.2, 2.0);
+    const screenMesh = new THREE.Mesh(screenGeo, screenMat);
+    screenMesh.position.set(0, 1.25, 0.032);
+    lidGroup.add(screenMesh);
+
+    // Screen glow
+    const glowGeo = new THREE.PlaneGeometry(3.3, 2.1);
+    const glowMesh = new THREE.Mesh(glowGeo, screenGlowMat);
+    glowMesh.position.set(0, 1.25, 0.034);
+    lidGroup.add(glowMesh);
+
+    // Screen content - "Lenovo" text using a simple shape
+    const screenContentGroup = new THREE.Group();
+    screenContentGroup.position.set(0, 1.25, 0.036);
+
+    // Lenovo logo line
+    const logoLineGeo = new THREE.BoxGeometry(0.8, 0.005, 0.001);
+    const logoLine = new THREE.Mesh(logoLineGeo, new THREE.MeshBasicMaterial({ color: 0xE2231A }));
+    logoLine.position.set(0, -0.1, 0);
+    screenContentGroup.add(logoLine);
+
+    // Decorative screen elements
+    for (let i = 0; i < 3; i++) {
+      const lineGeo = new THREE.BoxGeometry(1.5 - i * 0.3, 0.015, 0.001);
+      const line = new THREE.Mesh(lineGeo, new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.15 - i * 0.04
+      }));
+      line.position.set(0, 0.2 + i * 0.15, 0);
+      screenContentGroup.add(line);
+    }
+
+    lidGroup.add(screenContentGroup);
+
+    // Lenovo logo on back of lid
+    const backLogoGeo = new THREE.BoxGeometry(0.5, 0.02, 0.001);
+    const backLogo = new THREE.Mesh(backLogoGeo, logoMat);
+    backLogo.position.set(0.8, 2.0, -0.032);
+    lidGroup.add(backLogo);
+
+    // Small dot on back
+    const dotGeo = new THREE.CircleGeometry(0.03, 16);
+    const dotMesh = new THREE.Mesh(dotGeo, logoMat);
+    dotMesh.position.set(1.15, 2.0, -0.033);
+    dotMesh.rotation.y = Math.PI;
+    lidGroup.add(dotMesh);
+
+    lidGroup.rotation.x = -Math.PI * 0.38;
+    laptopGroup.add(lidGroup);
+
+    // Position
+    laptopGroup.position.set(0, -0.5, 0);
+    laptopGroup.rotation.y = -0.3;
+    scene.add(laptopGroup);
+
+    // Floating particles
+    const particlesCount = 200;
+    const particlesGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particlesCount * 3);
+
+    for (let i = 0; i < particlesCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 20;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 20;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 20;
+    }
+
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const particlesMat = new THREE.PointsMaterial({
+      color: 0xffffff,
+      size: 0.015,
+      transparent: true,
+      opacity: 0.4,
+    });
+    const particles = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particles);
+
+    // Animation state
+    let scrollY = 0;
+    let targetRotY = -0.3;
+    let targetRotX = 0;
+    let targetPosY = -0.5;
+    let targetLidAngle = -Math.PI * 0.38;
+    let targetCamZ = 6;
+    let mouseX = 0, mouseY = 0;
+
+    window.addEventListener('scroll', () => {
+      scrollY = window.scrollY;
+      const maxScroll = document.body.scrollHeight - window.innerHeight;
+      const progress = scrollY / maxScroll;
+
+      // Nav state
+      const nav = document.getElementById('mainNav');
+      if (scrollY > window.innerHeight * 0.3) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+
+      // Laptop transforms based on scroll
+      if (progress < 0.2) {
+        targetRotY = -0.3 + progress * 3;
+        targetPosY = -0.5;
+        targetLidAngle = -Math.PI * 0.38;
+        targetCamZ = 6;
+      } else if (progress < 0.4) {
+        const p = (progress - 0.2) / 0.2;
+        targetRotY = 0.3 + p * 1.5;
+        targetPosY = -0.5 + p * 0.3;
+        targetLidAngle = -Math.PI * (0.38 + p * 0.15);
+        targetCamZ = 6 - p * 1;
+      } else if (progress < 0.6) {
+        const p = (progress - 0.4) / 0.2;
+        targetRotY = 1.8 + p * 1.2;
+        targetPosY = -0.2 - p * 0.5;
+        targetLidAngle = -Math.PI * 0.53;
+        targetCamZ = 5 + p * 1;
+      } else if (progress < 0.8) {
+        const p = (progress - 0.6) / 0.2;
+        targetRotY = 3.0 + p * 1.5;
+        targetPosY = -0.7 + p * 0.5;
+        targetLidAngle = -Math.PI * (0.53 - p * 0.15);
+        targetCamZ = 6;
+      } else {
+        const p = (progress - 0.8) / 0.2;
+        targetRotY = 4.5 + p * 1.8;
+        targetPosY = -0.2;
+        targetLidAngle = -Math.PI * 0.38;
+        targetCamZ = 6 + p * 2;
+      }
+
+      // Update active nav
+      const sections = ['specs', 'features', 'design', 'order'];
+      const navItems = document.querySelectorAll('.nav-item');
+      sections.forEach((id, i) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top < window.innerHeight * 0.5 && rect.bottom > window.innerHeight * 0.3) {
+            navItems.forEach(n => { n.classList.remove('active'); n.querySelector('.dot')?.remove(); });
+            navItems[i].classList.add('active');
+            if (!navItems[i].querySelector('.dot')) {
+              const dot = document.createElement('div');
+              dot.className = 'dot';
+              navItems[i].appendChild(dot);
+            }
+          }
+        }
+      });
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      mouseX = (e.clientX / window.innerWidth - 0.5) * 0.3;
+      mouseY = (e.clientY / window.innerHeight - 0.5) * 0.15;
+    });
+
+    // Reveal on scroll
+    const revealElements = document.querySelectorAll('.reveal');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, { threshold: 0.1 });
+
+    revealElements.forEach(el => observer.observe(el));
+
+    // Smooth nav scrolling
+    document.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        const target = document.querySelector(item.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+
+    // Render loop
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      // Smooth interpolation
+      laptopGroup.rotation.y += (targetRotY + mouseX - laptopGroup.rotation.y) * 0.03;
+      laptopGroup.rotation.x += (mouseY - laptopGroup.rotation.x) * 0.03;
+      laptopGroup.position.y += (targetPosY + Math.sin(t * 0.8) * 0.08 - laptopGroup.position.y) * 0.03;
+      lidGroup.rotation.x += (targetLidAngle - lidGroup.rotation.x) * 0.03;
+      camera.position.z += (targetCamZ - camera.position.z) * 0.03;
+
+      // Particle rotation
+      particles.rotation.y = t * 0.02;
+      particles.rotation.x = t * 0.01;
+
+      // Screen glow pulse
+      glowMesh.material.opacity = 0.1 + Math.sin(t * 2) * 0.05;
+
+      // Red light animation
+      redLight.intensity = 0.4 + Math.sin(t * 1.5) * 0.2;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+
+    // Resize
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>
